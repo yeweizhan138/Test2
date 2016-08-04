@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="GBK" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanzhon.dao.UserMapper">
+	<resultMap id="BaseResultMap" type="com.wanzhon.model.User">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="username" property="username" jdbcType="VARCHAR" />
+		<result column="password" property="password" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- 返回包含role的User集合结果配置 -->
+	<resultMap id="queryForListMap" type="com.wanzhon.model.User">
+		<id column="u_id" property="id" jdbcType="INTEGER" />
+		<result column="u_username" property="username" jdbcType="VARCHAR" />
+		<result column="u_password" property="password" jdbcType="VARCHAR" />
+		<collection property="roles" javaType="java.util.List"
+			ofType="com.wanzhon.model.Role">
+			<id column="r_id" property="id" jdbcType="INTEGER" />
+			<result column="r_name" property="name" jdbcType="VARCHAR" />
+		</collection>
+	</resultMap>
+
+	<!-- 返回单个User的结果配置 -->
+	<!-- <resultMap type="com.wanzhon.model.User" id="userResult"> <id property="id" 
+		column="u_id" /> <result property="username" column="u_name" /> <result property="password" 
+		column="u_password" /> <association property="role" javaType="com.wanzhon.model.Role" 
+		resultMap="roleResult" /> </resultMap> <resultMap type="com.wanzhon.model.Role" 
+		id="roleResult"> <id property="id" column="r_id" /> <result property="name" 
+		column="r_name" /> </resultMap> -->
+
+	<sql id="Base_Column_List">
+		id, username, password
+	</sql>
+
+	<!-- 根据用户名查询 -->
+	<select id="selectUserByUsername" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT *
+		FROM user u
+		WHERE 1 = 1
+		<if test="username != null and username !=''">
+			AND username = #{username,jdbcType=VARCHAR}
+		</if>
+		ORDER BY u.id
+	</select>
+
+
+	<!-- 表连接查询 -->
+	<select id="queryForList" resultMap="queryForListMap">
+		SELECT
+		u.id as u_id,
+		u.username as u_name,
+		u.password as u_password,
+		r.id
+		as r_id,
+		r.name as
+		r_name
+		FROM
+		user u
+		LEFT JOIN
+		role r
+		ON
+		u.id =
+		r.userid
+	</select>
+	<select id="selectUserInfoById" parameterType="java.lang.Integer"
+		resultMap="queryForListMap">
+		SELECT
+		u.id as u_id,
+		u.username as u_name,
+		u.password as
+		u_password,
+		r.id
+		as r_id,
+		r.name as r_name
+		FROM
+		user u
+		LEFT JOIN
+		role r
+		ON
+		u.id =
+		r.userid
+		where
+		u.id=#{id,jdbcType=INTEGER}
+	</select>
+
+
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from user
+		where id = #{id,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from user
+		where id = #{id,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="com.wanzhon.model.User">
+		<!-- <selectKey resultType="java.lang.Integer" keyProperty="id"
+			order="BEFORE">
+			SELECT LAST_INSERT_ID()
+		</selectKey> -->
+		insert into user (id, username, password
+		)
+		values
+		(null,<!-- #{id,jdbcType=INTEGER}, --> #{username,jdbcType=VARCHAR},
+		#{password,jdbcType=VARCHAR}
+		)
+	</insert>
+	<insert id="insertSelective" parameterType="com.wanzhon.model.User">
+		<!-- <selectKey resultType="java.lang.Integer" keyProperty="id"
+			order="BEFORE">
+			SELECT LAST_INSERT_ID()
+		</selectKey> -->
+		insert into user
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			id,
+			<if test="username != null">
+				username,
+			</if>
+			<if test="password != null">
+				password,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<!-- #{id,jdbcType=INTEGER}, -->
+			null,
+			<if test="username != null">
+				#{username,jdbcType=VARCHAR},
+			</if>
+			<if test="password != null">
+				#{password,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="com.wanzhon.model.User">
+		update user
+		<set>
+			<if test="username != null">
+				username = #{username,jdbcType=VARCHAR},
+			</if>
+			<if test="password != null">
+				password = #{password,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="com.wanzhon.model.User">
+		update user
+		set
+		username = #{username,jdbcType=VARCHAR},
+		password =
+		#{password,jdbcType=VARCHAR}
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+	
+	
+	<select id="getAllUserCount" resultType="long">
+		SELECT COUNT(*) FROM
+		user ;
+	</select>
+	
+	<select id="getUsers" parameterType="com.wanzhon.page.Page" resultMap="BaseResultMap">
+		SELECT id,
+		username,password
+		FROM user limit #{startPos},
+		#{pageSize};
+	</select>
+	<select id="getAllUser" resultMap="BaseResultMap">
+		SELECT id, username,password
+		FROM user;
+	</select>
+</mapper>
